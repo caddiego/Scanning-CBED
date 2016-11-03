@@ -90,10 +90,42 @@ void main(string stem, number CBEDr, number CBEDc, number CBEDradius){
 	newImg.showImage();
 }
 
-string pathAndPrefix = "C:\\Users\\650-440-2399\\Desktop\\gatan_test\\Second_01\\test_scan_cbed_Hour_00_Minute_00_Second_01_Frame";
-number centerRow = 236;
-number centerCol = 222;
-number radius = 85
+\\string pathAndPrefix = "C:\\Users\\650-440-2399\\Desktop\\gatan_test\\Second_01\\test_scan_cbed_Hour_00_Minute_00_Second_01_Frame";
+\\number centerRow = 236;//preset to default value
+\\number centerCol = 222;//preset to default value
+\\number radius = 85 //preset to default value
 
+/*
+set values from promp window
+open the first image form the series of CBED patterns
+set the directory to the directory of the first image
+at the biginning, show the first CBED pattern
+ */
+
+image firstimg
+string filename
+string fromdirectory
+string cbedimgnamewithoutnumber=""
+string pathAndPrefix
+number centerRow
+number centerCol
+number radius
+
+If (!OpenDialog(filename)) Exit(0)
+fromdirectory=pathextractdirectory(filename,2) 
+Result("\n Selected file path:"+filename+"\n"+"from directory"+fromdirectory+"\n")
+firstimg := OpenImage(filename)
+firstimg.ShowImage()
+
+if (!getstring("Enter the file name of the images without last number/s", cbedimgnamewithoutnumber, cbedimgnamewithoutnumber)) Exit(0)
+pathAndPrefix = fromdirectory+cbedimgnamewithoutnumber
+
+if (!getnumber("Enter the x coordinate of the CBED pattern (Row)",0,centerRow)) Exit(0)
+if (!getnumber("Enter the y coordinate of the CBED pattern (Col)",0,centerCol)) Exit(0)
+if (!getnumber("Enter the radius of the CBED pattern",0, radius)) Exit(0)
+
+/*
+
+ */
 main(pathAndPrefix, centerRow, centerCol, radius);
 
