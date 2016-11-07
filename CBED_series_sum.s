@@ -47,7 +47,8 @@ image annularMask(image im, number cenRow, number cenCol, number CBEDradius, \
  * 		CBEDc - the center column (x-position) of the CBED patterns
  * 		CBEDradius - the radius of the CBED pattern
  */
-void main(string stem, number CBEDr, number CBEDc, number CBEDradius){
+void main(string stem, number CBEDr, number CBEDc, number CBEDradius, \
+	number maskOR, number maskIR, number angleStart, number angleEnd){
 
 	//defining the size of the image that will be generated
 	number nRows = 16;
@@ -55,19 +56,23 @@ void main(string stem, number CBEDr, number CBEDc, number CBEDradius){
 	image newImg := realImage("", 4, nRows, nCols);
 
 	//showing an example of where the mask is located on the image
+	result("\n" + stem + "_0000.dm4");
 	image prototype := OpenImage(stem + "_0000.dm4");
 
 	// generating an sector  mask offset to the center of the CBED pattern
 	// adjust this code to get different sectors or to switch to annular masks
-	number maskRadius = 50; 
-	number angleStart = -pi(); 
-	number angleEnd = pi(); 
-	image mask1 = sectorMask(prototype, CBEDr, CBEDc, CBEDradius, \
-		maskRadius, maskRadius + 10, angleStart, angleEnd);
+	image mask1 = prototype * 0;
+	if(maskIR == 0){
+		mask1 = sectorMask(prototype, CBEDr, CBEDc, CBEDradius, \
+			maskOR, angleStart, angleEnd);
+	}
+	else{
+		mask1 = annularMask(prototype, CBEDr, CBEDc, CBEDradius,\
+			maskOR, maskIR, angleStart, angleEnd);
+	}
 	
 	// show the prototype CBED pattern and the masked region
 	ShowImage(mask1 * prototype);
-	prototype.showImage();
 
 	//Looping through all pixels to generate an image
 	for(number r = 0 ; r < nRows; r++){
@@ -90,10 +95,17 @@ void main(string stem, number CBEDr, number CBEDc, number CBEDradius){
 	newImg.showImage();
 }
 
-\\string pathAndPrefix = "C:\\Users\\650-440-2399\\Desktop\\gatan_test\\Second_01\\test_scan_cbed_Hour_00_Minute_00_Second_01_Frame";
-\\number centerRow = 236;//preset to default value
-\\number centerCol = 222;//preset to default value
-\\number radius = 85 //preset to default value
+string pathAndPrefix = "C:\\Users\\650-440-2399\\Desktop\\gatan_test\\Second_01\\test_scan_cbed_Hour_00_Minute_00_Second_01_Frame";
+number numberingSuffixLength = 5 // assumes standard '_0000' form
+
+//setting default values
+number centerRow = 236;
+number centerCol = 222;
+number radius = 85;
+number outerRadius = 50;
+number innerRadius = 0;
+number angleStart = -pi();
+number angleEnd = pi();
 
 /*
 set values from promp window
@@ -102,30 +114,36 @@ set the directory to the directory of the first image
 at the biginning, show the first CBED pattern
  */
 
-image firstimg
-string filename
-string fromdirectory
-string cbedimgnamewithoutnumber=""
-string pathAndPrefix
-number centerRow
-number centerCol
-number radius
+image firstimg;
+string filename;
+string fromdirectory;
+string cbedimgnamewithoutnumber="";
 
-If (!OpenDialog(filename)) Exit(0)
-fromdirectory=pathextractdirectory(filename,2) 
-Result("\n Selected file path:"+filename+"\n"+"from directory"+fromdirectory+"\n")
-firstimg := OpenImage(filename)
-firstimg.ShowImage()
 
-if (!getstring("Enter the file name of the images without last number/s", cbedimgnamewithoutnumber, cbedimgnamewithoutnumber)) Exit(0)
-pathAndPrefix = fromdirectory+cbedimgnamewithoutnumber
+If (!OpenDialog(filename)) Exit(0);
+fromdirectory=pathextractdirectory(filename,2);
+Result("\n Selected file path:"+filename+"\n"+"from directory"+fromdirectory+"\n");
+firstimg := OpenImage(filename);
+firstimg.ShowImage();
 
-if (!getnumber("Enter the x coordinate of the CBED pattern (Row)",0,centerRow)) Exit(0)
-if (!getnumber("Enter the y coordinate of the CBED pattern (Col)",0,centerCol)) Exit(0)
-if (!getnumber("Enter the radius of the CBED pattern",0, radius)) Exit(0)
+if(!getnumber("numbering suffix length", numberingSuffixLength, numberingSuffixLength)) Exit(0);
+result("\n" + cbedimgnamewithoutnumber);
+result("\n" + pathAndPrefix);
+result("\n" + PathExtractBaseName(filename, 2));
+result("\n" + PathExtractExtension(filename, 2));
 
-/*
+number fullSuffixLength = len(PathExtractExtension(filename, 2)) + numberingSuffixLength + 1;
+pathAndPrefix = left(filename, len(filename) - fullSuffixLength);
+result("\n\n" + pathAndPrefix);
+result("\n" + fullSuffixLength);
 
- */
-main(pathAndPrefix, centerRow, centerCol, radius);
+if (!getnumber("Enter the x coordinate of the CBED pattern (Col)", centerCol, centerCol)) Exit(0);
+if (!getnumber("Enter the y coordinate of the CBED pattern (Row)", centerRow, centerRow)) Exit(0);
+if (!getnumber("Enter the radius of the CBED pattern", radius, radius)) Exit(0);
+if (!getnumber("Enter annular mask outer radius", outerRadius, outerRadius)) Exit(0);
+if (!getnumber("Enter annular mask inner radius (0 for a circular mask instead of an annulus)", innerRadius, innerRadius)) Exit(0);
+if (!getnumber("Enter annular mask starting angle, measured from -x axis [-pi, pi]", angleStart, angleStart)) Exit(0);
+if (!getnumber("Enter annular mask ending angle", angleEnd, angleEnd)) Exit(0);
+
+main(pathAndPrefix, centerRow, centerCol, radius, outerRadius, innerRadius, angleStart, angleEnd);
 
